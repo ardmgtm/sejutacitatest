@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'constant/styles.dart';
+import 'core/constant/styles.dart';
 import 'presentation/home_page.dart';
 
 void main() {
