@@ -17,7 +17,8 @@ class SearchLoading extends SearchState {
 }
 
 class Error extends SearchState {
-  Error() : super([]);
+  final Failure failure;
+  Error(this.failure) : super([]);
 }
 
 class SearchResult extends SearchState {

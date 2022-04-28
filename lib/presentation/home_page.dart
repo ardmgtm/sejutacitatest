@@ -29,17 +29,31 @@ class HomePage extends StatelessWidget {
               child: TextField(
                 controller: _searchInput,
                 textInputAction: TextInputAction.search,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: "Search",
-                  contentPadding: EdgeInsets.all(8),
+                  contentPadding: const EdgeInsets.all(8),
                   filled: true,
                   fillColor: Colors.white,
                   isDense: true,
-                  prefixIcon: Padding(
+                  prefixIcon: const Padding(
                     padding: EdgeInsets.all(4.0),
                     child: Icon(Icons.search),
                   ),
-                  prefixIconConstraints: BoxConstraints(
+                  suffixIcon: GestureDetector(
+                    onTap: () {
+                      _searchInput.clear();
+                      searchBloc.add(Reset());
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.only(right: 8),
+                      child: Icon(Icons.clear),
+                    ),
+                  ),
+                  prefixIconConstraints: const BoxConstraints(
+                    maxHeight: 24,
+                    maxWidth: 24,
+                  ),
+                  suffixIconConstraints: const BoxConstraints(
                     maxHeight: 24,
                     maxWidth: 24,
                   ),
@@ -140,12 +154,12 @@ class HomePage extends StatelessWidget {
                       ),
                     );
                   } else if (state is Error) {
-                    return const SliverToBoxAdapter(
-                      child: FailureWidget(),
+                    return SliverToBoxAdapter(
+                      child: FailureWidget(message: state.failure.message),
                     );
                   } else {
-                    return SliverToBoxAdapter(
-                      child: Container(),
+                    return const SliverToBoxAdapter(
+                      child: InitialView(),
                     );
                   }
                 },

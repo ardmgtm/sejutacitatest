@@ -37,7 +37,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         (data) {
           return SearchResult(data);
         },
-        (failure) => Error(),
+        (failure) => Error(failure),
       ));
     });
     on<LoadMoreData>((event, emit) {

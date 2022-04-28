@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class FailureWidget extends StatelessWidget {
-  const FailureWidget({Key? key}) : super(key: key);
+  final String? message;
+  const FailureWidget({Key? key, this.message}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -10,15 +11,19 @@ class FailureWidget extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
-        children: const [
-          Icon(
+        children: [
+          const Icon(
             Icons.warning,
             size: 48,
             color: Colors.grey,
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
-            "Something Wrong !",
+            message ?? "Something Wrong !",
+            style: const TextStyle(color: Colors.grey),
+          ),
+          const Text(
+            "Try again later",
             style: TextStyle(color: Colors.grey),
           ),
         ],

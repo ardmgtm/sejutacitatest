@@ -1,4 +1,5 @@
 export 'failure_widget.dart';
+export 'initial_view.dart';
 export 'issue_item_card.dart';
 export 'loading_item_card.dart';
 export 'no_data_widget.dart';
