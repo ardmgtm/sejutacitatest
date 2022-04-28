@@ -7,6 +7,8 @@ abstract class SearchEvent extends Equatable {
   List<Object> get props => [];
 }
 
+class Reset extends SearchEvent {}
+
 class SetSearchMode extends SearchEvent {
   final int searchMode;
 

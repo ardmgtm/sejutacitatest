@@ -1,7 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../../core/error/failure.dart';
@@ -18,6 +17,9 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   SearchRepository rep;
 
   SearchBloc(this.rep) : super(SearchInitial()) {
+    on<Reset>((event, emit) {
+      emit(SearchInitial());
+    });
     on<SetSearchMode>((event, emit) {
       searchMode = event.searchMode;
     });
@@ -31,10 +33,10 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         event.query,
         page: event.page,
       );
-      debugPrint("$searchMode $viewMode ${event.query}");
-      debugPrint(res.toString());
       emit(res.fold(
-        (data) => SearchResult(data),
+        (data) {
+          return SearchResult(data);
+        },
         (failure) => Error(),
       ));
     });

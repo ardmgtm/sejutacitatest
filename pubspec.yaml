@@ -36,6 +36,7 @@ dependencies:
   flutter_bloc: ^8.0.1
   get_it: ^7.2.0
   injectable: ^1.5.3
+  intl: ^0.17.0
   shimmer: ^2.0.0
 
 dev_dependencies:

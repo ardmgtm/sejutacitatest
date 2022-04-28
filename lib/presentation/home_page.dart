@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'bloc/search/search_bloc.dart';
 import 'bloc/search_mode/search_mode_bloc.dart';
 import 'bloc/view_mode/view_mode_bloc.dart';
-import 'widgets/loading_item_card.dart';
 import 'widgets/widgets.dart';
 
 class HomePage extends StatelessWidget {
@@ -48,7 +47,9 @@ class HomePage extends StatelessWidget {
                 onSubmitted: (value) {
                   if (value.isNotEmpty) {
                     debugPrint("Searching $value ....");
-                    context.read<SearchBloc>().add(LoadData(value, page: 1));
+                    searchBloc.add(LoadData(value, page: 1));
+                  } else {
+                    searchBloc.add(Reset());
                   }
                 },
               ),
@@ -114,12 +115,37 @@ class HomePage extends StatelessWidget {
                       ),
                     );
                   } else if (state is SearchResult) {
+                    SearchResult _s = state;
+                    if (_s.data.isEmpty) {
+                      return const SliverToBoxAdapter(
+                        child: NoDataWidget(),
+                      );
+                    }
+                    return SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (BuildContext context, int index) {
+                          switch (searchModeBloc.state.index) {
+                            case 0:
+                              return UserItemCard(user: _s.data[index]);
+                            case 1:
+                              return IssueItemCard(issue: _s.data[index]);
+                            case 2:
+                              return RepositoryItemCard(
+                                  repository: _s.data[index]);
+                            default:
+                              return const LoadingItemCard();
+                          }
+                        },
+                        childCount: _s.data.length,
+                      ),
+                    );
+                  } else if (state is Error) {
                     return const SliverToBoxAdapter(
-                      child: Text("Result"),
+                      child: FailureWidget(),
                     );
                   } else {
-                    return const SliverToBoxAdapter(
-                      child: Text("unknown"),
+                    return SliverToBoxAdapter(
+                      child: Container(),
                     );
                   }
                 },

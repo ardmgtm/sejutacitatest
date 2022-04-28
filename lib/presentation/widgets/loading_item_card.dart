@@ -11,7 +11,7 @@ class LoadingItemCard extends StatelessWidget {
       highlightColor: Colors.grey[100]!,
       enabled: true,
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 8.0),
+        padding: const EdgeInsets.only(bottom: 16),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -27,13 +27,7 @@ class LoadingItemCard extends StatelessWidget {
                 children: <Widget>[
                   Container(
                     width: double.infinity,
-                    height: 16.0,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    width: MediaQuery.of(context).size.width / 3,
-                    height: 8.0,
+                    height: 64,
                     color: Colors.white,
                   ),
                 ],
