@@ -4,7 +4,7 @@ enum SearchMode { user, issue, repository }
 
 class SearchModeRadioGroup extends StatelessWidget {
   final int? selectedIndex;
-  final Function(int)? onValueChange;
+  final Function(int?)? onValueChange;
 
   const SearchModeRadioGroup({
     Key? key,
@@ -26,6 +26,7 @@ class SearchModeRadioGroup extends StatelessWidget {
                   label: label,
                   value: labels.indexOf(label),
                   groupValue: _selectedIndex,
+                  onSelected: onValueChange,
                 ),
               )
               .toList(),
@@ -51,26 +52,33 @@ class RadioItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Radio(
-          fillColor: MaterialStateProperty.resolveWith((states) {
-            if (states.contains(MaterialState.selected)) {
-              return Theme.of(context).colorScheme.secondary;
-            }
-            return Colors.white;
-          }),
-          value: value,
-          groupValue: groupValue,
-          onChanged: onSelected,
-        ),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white,
+    return GestureDetector(
+      onTap: () {
+        if (onSelected != null && value != groupValue) {
+          onSelected!(value);
+        }
+      },
+      child: Row(
+        children: [
+          Radio(
+            fillColor: MaterialStateProperty.resolveWith((states) {
+              if (states.contains(MaterialState.selected)) {
+                return Theme.of(context).colorScheme.secondary;
+              }
+              return Colors.white;
+            }),
+            value: value,
+            groupValue: groupValue,
+            onChanged: onSelected,
           ),
-        ),
-      ],
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

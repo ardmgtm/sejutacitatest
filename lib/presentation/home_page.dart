@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'bloc/search_mode/search_mode_bloc.dart';
+import 'bloc/view_mode/view_mode_bloc.dart';
+import 'widgets/loading_item_card.dart';
 import 'widgets/widgets.dart';
 
 class HomePage extends StatelessWidget {
@@ -52,13 +56,29 @@ class HomePage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SearchModeRadioGroup(
-                      selectedIndex: 0,
-                      onValueChange: (selectedIndex) {},
+                    BlocBuilder<SearchModeBloc, SearchModeState>(
+                      builder: (context, state) {
+                        return SearchModeRadioGroup(
+                          selectedIndex: state.index,
+                          onValueChange: (selectedIndex) {
+                            context
+                                .read<SearchModeBloc>()
+                                .add(SwitchSearchMode(selectedIndex!));
+                          },
+                        );
+                      },
                     ),
-                    ViewModeChoiceGroup(
-                      selectedIndex: 0,
-                      onValueChange: (selectedIndex) {},
+                    BlocBuilder<ViewModeBloc, ViewModeState>(
+                      builder: (context, state) {
+                        return ViewModeChoiceGroup(
+                          selectedIndex: state.index,
+                          onValueChange: (selectedIndex) {
+                            context
+                                .read<ViewModeBloc>()
+                                .add(SwitchViewMode(selectedIndex));
+                          },
+                        );
+                      },
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -67,17 +87,15 @@ class HomePage extends StatelessWidget {
             ),
             pinned: true,
           ),
-          SliverFixedExtentList(
-            itemExtent: 50.0,
-            delegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-                return Container(
-                  alignment: Alignment.center,
-                  color: Colors.grey[200],
-                  child: Text('list item $index'),
-                );
-              },
-              childCount: 100,
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                  return const LoadingItemCard();
+                },
+                childCount: 20,
+              ),
             ),
           ),
         ],

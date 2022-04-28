@@ -1,9 +1,11 @@
 import 'package:dio/dio.dart';
+import 'package:injectable/injectable.dart';
 
 import '../model/issue_model.dart';
 import '../model/repository_model.dart';
 import '../model/user_model.dart';
 
+@lazySingleton
 class ApiDataSource {
   late Dio _dio;
 

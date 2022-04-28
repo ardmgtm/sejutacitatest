@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:injectable/injectable.dart';
 
 import '../../core/error/failure.dart';
 import '../../domain/entity/issue.dart';
@@ -7,6 +8,7 @@ import '../../domain/entity/user.dart';
 import '../../domain/repository/search_repository.dart';
 import '../data_source/api_data_source.dart';
 
+@LazySingleton(as: SearchRepository)
 class SearchRepositoryImpl implements SearchRepository {
   final ApiDataSource apiDataSource;
 
