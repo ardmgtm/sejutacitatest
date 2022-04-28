@@ -63,7 +63,7 @@ class ChoiceItem extends StatelessWidget {
       ),
       selected: _selected,
       onSelected: (val) {
-        if (onSelected != null) {
+        if (onSelected != null && index != selectedIndex) {
           onSelected!(index);
         }
       },

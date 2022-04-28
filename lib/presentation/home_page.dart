@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'bloc/search/search_bloc.dart';
 import 'bloc/search_mode/search_mode_bloc.dart';
 import 'bloc/view_mode/view_mode_bloc.dart';
 import 'widgets/loading_item_card.dart';
@@ -14,6 +15,11 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
     final _primaryColor = Theme.of(context).colorScheme.primary;
+    TextEditingController _searchInput = TextEditingController();
+
+    var searchBloc = context.read<SearchBloc>();
+    var searchModeBloc = context.read<SearchModeBloc>();
+    var viewModeBloc = context.read<ViewModeBloc>();
 
     return Scaffold(
       body: CustomScrollView(
@@ -22,6 +28,7 @@ class HomePage extends StatelessWidget {
             backgroundColor: _primaryColor,
             title: SafeArea(
               child: TextField(
+                controller: _searchInput,
                 textInputAction: TextInputAction.search,
                 decoration: const InputDecoration(
                   hintText: "Search",
@@ -41,6 +48,7 @@ class HomePage extends StatelessWidget {
                 onSubmitted: (value) {
                   if (value.isNotEmpty) {
                     debugPrint("Searching $value ....");
+                    context.read<SearchBloc>().add(LoadData(value, page: 1));
                   }
                 },
               ),
@@ -61,9 +69,12 @@ class HomePage extends StatelessWidget {
                         return SearchModeRadioGroup(
                           selectedIndex: state.index,
                           onValueChange: (selectedIndex) {
-                            context
-                                .read<SearchModeBloc>()
+                            searchModeBloc
                                 .add(SwitchSearchMode(selectedIndex!));
+                            searchBloc.add(SetSearchMode(selectedIndex));
+                            if (_searchInput.text.isNotEmpty) {
+                              searchBloc.add(LoadData(_searchInput.text));
+                            }
                           },
                         );
                       },
@@ -73,9 +84,11 @@ class HomePage extends StatelessWidget {
                         return ViewModeChoiceGroup(
                           selectedIndex: state.index,
                           onValueChange: (selectedIndex) {
-                            context
-                                .read<ViewModeBloc>()
-                                .add(SwitchViewMode(selectedIndex));
+                            viewModeBloc.add(SwitchViewMode(selectedIndex));
+                            searchBloc.add(SetViewMode(selectedIndex));
+                            if (_searchInput.text.isNotEmpty) {
+                              searchBloc.add(LoadData(_searchInput.text));
+                            }
                           },
                         );
                       },
@@ -88,16 +101,29 @@ class HomePage extends StatelessWidget {
             pinned: true,
           ),
           SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (BuildContext context, int index) {
-                  return const LoadingItemCard();
+              padding: const EdgeInsets.all(16),
+              sliver: BlocBuilder<SearchBloc, SearchState>(
+                builder: (context, state) {
+                  if (state is SearchLoading) {
+                    return SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (BuildContext context, int index) {
+                          return const LoadingItemCard();
+                        },
+                        childCount: 5,
+                      ),
+                    );
+                  } else if (state is SearchResult) {
+                    return const SliverToBoxAdapter(
+                      child: Text("Result"),
+                    );
+                  } else {
+                    return const SliverToBoxAdapter(
+                      child: Text("unknown"),
+                    );
+                  }
                 },
-                childCount: 20,
-              ),
-            ),
-          ),
+              )),
         ],
       ),
     );
