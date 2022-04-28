@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 class Issue extends Equatable {
   final int id;
-  final int title;
+  final String title;
   final DateTime updatedTime;
   final String state;
 
