@@ -27,10 +27,3 @@ class LoadData extends SearchEvent {
 
   const LoadData(this.query, {this.page = 1});
 }
-
-class LoadMoreData extends SearchEvent {
-  final String query;
-  final int page;
-
-  const LoadMoreData(this.query, {this.page = 1});
-}

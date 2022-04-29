@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
+import 'package:sejutacitatest/domain/entity/response_data.dart';
 
 import '../../core/error/failure.dart';
 import '../../domain/entity/issue.dart';
@@ -16,12 +17,11 @@ class SearchRepositoryImpl implements SearchRepository {
   SearchRepositoryImpl({required this.apiDataSource});
 
   @override
-  Future<Either<List<Issue>, Failure>> searchIssues(String query,
+  Future<Either<ResponseData<Issue>, Failure>> searchIssues(String query,
       {int page = 1}) async {
     try {
       var res = await apiDataSource.searchIssues(query, page: page);
-      List<Issue> issues = res.map((e) => e.toEntity()).toList();
-      return Left(issues);
+      return Left(res);
     } on DioError catch (e) {
       return _catchDioError(e);
     } catch (e) {
@@ -30,12 +30,12 @@ class SearchRepositoryImpl implements SearchRepository {
   }
 
   @override
-  Future<Either<List<Repository>, Failure>> searchRepositories(String query,
+  Future<Either<ResponseData<Repository>, Failure>> searchRepositories(
+      String query,
       {int page = 1}) async {
     try {
       var res = await apiDataSource.searchRepositories(query, page: page);
-      List<Repository> repositories = res.map((e) => e.toEntity()).toList();
-      return Left(repositories);
+      return Left(res);
     } on DioError catch (e) {
       return _catchDioError(e);
     } catch (e) {
@@ -44,14 +44,13 @@ class SearchRepositoryImpl implements SearchRepository {
   }
 
   @override
-  Future<Either<List<User>, Failure>> searchUsers(String query,
+  Future<Either<ResponseData<User>, Failure>> searchUsers(String query,
       {int page = 1}) async {
     try {
       var res = await apiDataSource.searchUsers(query, page: page);
-      List<User> users = res.map((e) => e.toEntity()).toList();
-      return Left(users);
+      return Left(res);
     } on DioError catch (e) {
-      return _catchDioError<List<User>, Failure>(e);
+      return _catchDioError(e);
     } catch (e) {
       return const Right(UnexpectedFailure());
     }

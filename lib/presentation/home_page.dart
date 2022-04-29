@@ -20,6 +20,8 @@ class HomePage extends StatelessWidget {
     var searchModeBloc = context.read<SearchModeBloc>();
     var viewModeBloc = context.read<ViewModeBloc>();
 
+    String query = '';
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -61,6 +63,7 @@ class HomePage extends StatelessWidget {
                 onSubmitted: (value) {
                   if (value.isNotEmpty) {
                     debugPrint("Searching $value ....");
+                    query = value;
                     searchBloc.add(LoadData(value, page: 1));
                   } else {
                     searchBloc.add(Reset());
@@ -86,6 +89,7 @@ class HomePage extends StatelessWidget {
                           onValueChange: (selectedIndex) {
                             searchModeBloc
                                 .add(SwitchSearchMode(selectedIndex!));
+                            searchBloc.add(Reset());
                             searchBloc.add(SetSearchMode(selectedIndex));
                             if (_searchInput.text.isNotEmpty) {
                               searchBloc.add(LoadData(_searchInput.text));
@@ -100,6 +104,7 @@ class HomePage extends StatelessWidget {
                           selectedIndex: state.index,
                           onValueChange: (selectedIndex) {
                             viewModeBloc.add(SwitchViewMode(selectedIndex));
+                            searchBloc.add(Reset());
                             searchBloc.add(SetViewMode(selectedIndex));
                             if (_searchInput.text.isNotEmpty) {
                               searchBloc.add(LoadData(_searchInput.text));
@@ -165,6 +170,25 @@ class HomePage extends StatelessWidget {
                 },
               )),
         ],
+      ),
+      bottomNavigationBar: BlocBuilder<SearchBloc, SearchState>(
+        builder: (context, state) {
+          if (state is SearchResult &&
+              viewModeBloc.state is ViewModeWithIndex) {
+            return PageWidget(
+              page: state.page,
+              maxPage: state.maxPage,
+              previous: (page) {
+                debugPrint(page.toString());
+                searchBloc.add(LoadData(query, page: page));
+              },
+              next: (page) {
+                searchBloc.add(LoadData(query, page: page));
+              },
+            );
+          }
+          return const SizedBox(height: 0, width: 0);
+        },
       ),
     );
   }

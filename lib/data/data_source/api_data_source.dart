@@ -1,6 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
+import 'package:sejutacitatest/domain/entity/issue.dart';
+import 'package:sejutacitatest/domain/entity/repository.dart';
+import 'package:sejutacitatest/domain/entity/response_data.dart';
 
+import '../../domain/entity/user.dart';
 import '../model/issue_model.dart';
 import '../model/repository_model.dart';
 import '../model/user_model.dart';
@@ -17,7 +21,7 @@ class ApiDataSource {
     );
   }
 
-  Future<List<UserModel>> searchUsers(String query, {page = 1}) async {
+  Future<ResponseData<User>> searchUsers(String query, {page = 1}) async {
     var res = await _dio.get(
       '/users',
       queryParameters: {
@@ -27,15 +31,15 @@ class ApiDataSource {
       options: Options(responseType: ResponseType.json),
     );
     var jsonData = res.data;
-    List<UserModel> users = [];
+    List<User> users = [];
     for (Map<String, dynamic> item in jsonData['items']) {
-      UserModel user = UserModel.fromJson(item);
+      final user = UserModel.fromJson(item).toEntity();
       users.add(user);
     }
-    return users;
+    return ResponseData(totalCount: jsonData['total_count'], data: users);
   }
 
-  Future<List<IssueModel>> searchIssues(String query, {page = 1}) async {
+  Future<ResponseData<Issue>> searchIssues(String query, {page = 1}) async {
     var res = await _dio.get(
       '/issues',
       queryParameters: {
@@ -45,15 +49,15 @@ class ApiDataSource {
       options: Options(responseType: ResponseType.json),
     );
     final jsonData = res.data;
-    List<IssueModel> issues = [];
+    List<Issue> issues = [];
     for (Map<String, dynamic> item in jsonData['items']) {
-      final issue = IssueModel.fromJson(item);
+      final issue = IssueModel.fromJson(item).toEntity();
       issues.add(issue);
     }
-    return issues;
+    return ResponseData(totalCount: jsonData['total_count'], data: issues);
   }
 
-  Future<List<RepositoryModel>> searchRepositories(String query,
+  Future<ResponseData<Repository>> searchRepositories(String query,
       {page = 1}) async {
     var res = await _dio.get(
       '/repositories',
@@ -64,11 +68,12 @@ class ApiDataSource {
       options: Options(responseType: ResponseType.json),
     );
     final jsonData = res.data;
-    List<RepositoryModel> repositories = [];
+    List<Repository> repositories = [];
     for (Map<String, dynamic> item in jsonData['items']) {
-      final repository = RepositoryModel.fromJson(item);
+      final repository = RepositoryModel.fromJson(item).toEntity();
       repositories.add(repository);
     }
-    return repositories;
+    return ResponseData(
+        totalCount: jsonData['total_count'], data: repositories);
   }
 }
