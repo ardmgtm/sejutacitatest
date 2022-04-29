@@ -86,6 +86,7 @@ class HomePage extends StatelessWidget {
                   if (value.isNotEmpty) {
                     debugPrint("Searching $value ....");
                     _query = value;
+                    _searchBloc.add(Reset());
                     _searchBloc.add(LoadData(value, page: 1));
                   } else {
                     _searchBloc.add(Reset());

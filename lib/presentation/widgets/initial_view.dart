@@ -5,9 +5,10 @@ class InitialView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: MediaQuery.of(context).size.shortestSide,
+    return Padding(
+      padding: const EdgeInsets.only(top: 32),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: const [
@@ -20,7 +21,7 @@ class InitialView extends StatelessWidget {
           SizedBox(
             width: 200,
             child: Text(
-              "Tap Searchbar to search user, issue, or repository",
+              "Search user, issue, or repository",
               style: TextStyle(
                 color: Colors.grey,
               ),

@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
@@ -27,41 +28,44 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     on<SetViewMode>((event, emit) {
       viewMode = event.viewMode;
     });
-    on<LoadData>((event, emit) async {
-      bool hasLoadedBefore = state is SearchResult;
-      late SearchResult lastSearchResult;
+    on<LoadData>(
+      (event, emit) async {
+        bool hasLoadedBefore = state is SearchResult;
+        late SearchResult lastSearchResult;
 
-      if (hasLoadedBefore && viewMode == 0) {
-        lastSearchResult = state as SearchResult;
-      } else {
-        emit(SearchLoading());
-      }
+        if (hasLoadedBefore && viewMode == 0) {
+          lastSearchResult = state as SearchResult;
+        } else {
+          emit(SearchLoading());
+        }
 
-      var res = await _getData(
-        searchMode,
-        event.query,
-        page: event.page,
-      );
-      emit(res.fold(
-        (responseData) {
-          int maxPage = responseData.totalCount ~/ 30 + 1;
-          if (viewMode == 0 && hasLoadedBefore) {
-            return SearchResult(
-              lastSearchResult.data + responseData.data,
-              event.page,
-              maxPage,
-            );
-          } else {
-            return SearchResult(
-              responseData.data,
-              event.page,
-              maxPage,
-            );
-          }
-        },
-        (failure) => Error(failure),
-      ));
-    });
+        var res = await _getData(
+          searchMode,
+          event.query,
+          page: event.page,
+        );
+        emit(res.fold(
+          (responseData) {
+            int maxPage = responseData.totalCount ~/ 30 + 1;
+            if (viewMode == 0 && hasLoadedBefore) {
+              return SearchResult(
+                lastSearchResult.data + responseData.data,
+                event.page,
+                maxPage,
+              );
+            } else {
+              return SearchResult(
+                responseData.data,
+                event.page,
+                maxPage,
+              );
+            }
+          },
+          (failure) => Error(failure),
+        ));
+      },
+      transformer: restartable(),
+    );
   }
 
   Future<Either<ResponseData, Failure>> _getData(int searchMode, String query,
