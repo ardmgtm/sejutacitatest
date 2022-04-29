@@ -27,3 +27,5 @@ class LoadData extends SearchEvent {
 
   const LoadData(this.query, {this.page = 1});
 }
+
+class GetCachedData extends SearchEvent {}

@@ -17,9 +17,9 @@ class UserModel extends User {
         avatarUrl: json['avatar_url'],
       );
 
-  User toEntity() => User(
-        id: id,
-        username: username,
-        avatarUrl: avatarUrl,
-      );
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'login': username,
+        'avatar_url': avatarUrl,
+      };
 }

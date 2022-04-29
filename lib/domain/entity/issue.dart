@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 
-class Issue extends Equatable {
+import 'entity.dart';
+
+class Issue extends Equatable implements Entity {
   final int id;
   final String title;
   final DateTime updatedTime;

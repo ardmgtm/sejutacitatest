@@ -8,6 +8,10 @@ abstract class ViewModeState extends Equatable {
   List<Object> get props => [];
 }
 
+class ViewModeInitial extends ViewModeState {
+  const ViewModeInitial() : super(-1);
+}
+
 class ViewModeLazyLoading extends ViewModeState {
   const ViewModeLazyLoading() : super(0);
 }

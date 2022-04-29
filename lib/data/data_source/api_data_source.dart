@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
-import 'package:sejutacitatest/domain/entity/issue.dart';
-import 'package:sejutacitatest/domain/entity/repository.dart';
-import 'package:sejutacitatest/domain/entity/response_data.dart';
 
+import '../../domain/entity/issue.dart';
+import '../../domain/entity/repository.dart';
+import '../../domain/entity/response_data.dart';
 import '../../domain/entity/user.dart';
 import '../model/issue_model.dart';
 import '../model/repository_model.dart';
@@ -33,10 +33,19 @@ class ApiDataSource {
     var jsonData = res.data;
     List<User> users = [];
     for (Map<String, dynamic> item in jsonData['items']) {
-      final user = UserModel.fromJson(item).toEntity();
+      final user = UserModel.fromJson(item);
       users.add(user);
     }
-    return ResponseData(totalCount: jsonData['total_count'], data: users);
+
+    int maxPage = jsonData['total_count'] ~/ 30 + 1;
+    return ResponseData(
+      type: 0,
+      totalCount: jsonData['total_count'],
+      data: users,
+      maxPage: maxPage,
+      page: page,
+      query: query,
+    );
   }
 
   Future<ResponseData<Issue>> searchIssues(String query, {page = 1}) async {
@@ -51,10 +60,19 @@ class ApiDataSource {
     final jsonData = res.data;
     List<Issue> issues = [];
     for (Map<String, dynamic> item in jsonData['items']) {
-      final issue = IssueModel.fromJson(item).toEntity();
+      final issue = IssueModel.fromJson(item);
       issues.add(issue);
     }
-    return ResponseData(totalCount: jsonData['total_count'], data: issues);
+
+    int maxPage = jsonData['total_count'] ~/ 30 + 1;
+    return ResponseData(
+      type: 1,
+      totalCount: jsonData['total_count'],
+      data: issues,
+      maxPage: maxPage,
+      page: page,
+      query: query,
+    );
   }
 
   Future<ResponseData<Repository>> searchRepositories(String query,
@@ -70,10 +88,18 @@ class ApiDataSource {
     final jsonData = res.data;
     List<Repository> repositories = [];
     for (Map<String, dynamic> item in jsonData['items']) {
-      final repository = RepositoryModel.fromJson(item).toEntity();
+      final repository = RepositoryModel.fromJson(item);
       repositories.add(repository);
     }
+
+    int maxPage = jsonData['total_count'] ~/ 30 + 1;
     return ResponseData(
-        totalCount: jsonData['total_count'], data: repositories);
+      type: 2,
+      totalCount: jsonData['total_count'],
+      data: repositories,
+      maxPage: maxPage,
+      page: page,
+      query: query,
+    );
   }
 }

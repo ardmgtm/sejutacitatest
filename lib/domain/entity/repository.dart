@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 
-class Repository extends Equatable {
+import 'entity.dart';
+
+class Repository extends Equatable implements Entity {
   final int id;
   final String fullname;
   final DateTime createdDate;

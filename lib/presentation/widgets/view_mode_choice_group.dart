@@ -12,7 +12,7 @@ class ViewModeChoiceGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int _selectedIndex = selectedIndex ?? 0;
+    int _selectedIndex = selectedIndex ?? -1;
     List<String> viewMode = ['Lazy Loading', 'With Index'];
 
     return Padding(

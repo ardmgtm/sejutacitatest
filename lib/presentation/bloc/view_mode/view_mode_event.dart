@@ -12,3 +12,5 @@ class SwitchViewMode extends ViewModelEvent {
 
   const SwitchViewMode(this.index);
 }
+
+class GetLastViewMode extends ViewModelEvent {}

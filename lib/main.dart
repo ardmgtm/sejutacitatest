@@ -21,13 +21,14 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<SearchBloc>(
-          create: (context) => getIt<SearchBloc>(),
+          create: (context) => getIt<SearchBloc>()..add(GetCachedData()),
         ),
         BlocProvider<SearchModeBloc>(
-          create: (context) => getIt<SearchModeBloc>(),
+          create: (context) =>
+              getIt<SearchModeBloc>()..add(GetLastSearchMode()),
         ),
         BlocProvider<ViewModeBloc>(
-          create: (context) => getIt<ViewModeBloc>(),
+          create: (context) => getIt<ViewModeBloc>()..add(GetLastViewMode()),
         ),
       ],
       child: MaterialApp(

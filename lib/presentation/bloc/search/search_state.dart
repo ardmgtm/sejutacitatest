@@ -24,16 +24,20 @@ class Error extends SearchState {
 class SearchResult extends SearchState {
   final int page;
   final int maxPage;
+  final String query;
 
   const SearchResult(
     List data,
     this.page,
     this.maxPage,
+    this.query,
   ) : super(data);
 
-  SearchResult copyWith({List? data, int? page, int? maxPage}) => SearchResult(
+  SearchResult copyWith({List? data, int? page, int? maxPage, String? query}) =>
+      SearchResult(
         data ?? this.data,
         page ?? this.page,
         maxPage ?? this.maxPage,
+        query ?? this.query,
       );
 }

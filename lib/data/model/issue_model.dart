@@ -20,10 +20,10 @@ class IssueModel extends Issue {
         state: json['state'],
       );
 
-  Issue toEntity() => Issue(
-        id: id,
-        title: title,
-        updatedTime: updatedTime,
-        state: state,
-      );
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'updated_at': updatedTime.toIso8601String(),
+        'state': state,
+      };
 }

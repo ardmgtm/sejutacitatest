@@ -8,6 +8,10 @@ abstract class SearchModeState extends Equatable {
   List<Object> get props => [index];
 }
 
+class SearchModeInitial extends SearchModeState {
+  const SearchModeInitial() : super(-1);
+}
+
 class SearchModeUser extends SearchModeState {
   const SearchModeUser() : super(0);
 }

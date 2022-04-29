@@ -27,12 +27,12 @@ class RepositoryModel extends Repository {
         forks: json['forks_count'],
       );
 
-  Repository toEntity() => Repository(
-        id: id,
-        fullname: fullname,
-        createdDate: createdDate,
-        watchers: watchers,
-        stars: stars,
-        forks: forks,
-      );
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'full_name': fullname,
+        'created_at': createdDate.toIso8601String(),
+        'watchers_count': watchers,
+        'stargazers_count': stars,
+        'forks_count': forks,
+      };
 }

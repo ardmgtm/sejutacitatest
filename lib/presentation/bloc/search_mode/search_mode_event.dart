@@ -12,3 +12,5 @@ class SwitchSearchMode extends SearchModeEvent {
 
   const SwitchSearchMode(this.index);
 }
+
+class GetLastSearchMode extends SearchModeEvent {}

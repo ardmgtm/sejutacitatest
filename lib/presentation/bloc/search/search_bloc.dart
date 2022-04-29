@@ -3,6 +3,7 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/error/failure.dart';
 import '../../../domain/entity/response_data.dart';
@@ -19,7 +20,8 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   SearchRepository rep;
 
   SearchBloc(this.rep) : super(SearchInitial()) {
-    on<Reset>((event, emit) {
+    on<Reset>((event, emit) async {
+      rep.cacheSearchData(ResponseData.empty());
       emit(SearchInitial());
     });
     on<SetSearchMode>((event, emit) {
@@ -28,6 +30,26 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     on<SetViewMode>((event, emit) {
       viewMode = event.viewMode;
     });
+    on<GetCachedData>((event, emit) async {
+      var res = await rep.getCachedData();
+      SharedPreferences _sp = await SharedPreferences.getInstance();
+      searchMode = _sp.getInt('SEARCH_MODE') ?? 0;
+      viewMode = _sp.getInt('VIEW_MODE') ?? 0;
+
+      emit(res.fold(
+        (responseData) {
+          if (responseData.data.isEmpty) return SearchInitial();
+          return SearchResult(
+            responseData.data,
+            responseData.page,
+            responseData.maxPage,
+            responseData.query,
+          );
+        },
+        (_) => SearchInitial(),
+      ));
+    });
+
     on<LoadData>(
       (event, emit) async {
         bool hasLoadedBefore = state is SearchResult;
@@ -46,18 +68,25 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         );
         emit(res.fold(
           (responseData) {
-            int maxPage = responseData.totalCount ~/ 30 + 1;
             if (viewMode == 0 && hasLoadedBefore) {
+              rep.cacheSearchData(
+                responseData.copyWith(
+                  data: lastSearchResult.data + responseData.data,
+                ),
+              );
               return SearchResult(
                 lastSearchResult.data + responseData.data,
                 event.page,
-                maxPage,
+                responseData.maxPage,
+                event.query,
               );
             } else {
+              rep.cacheSearchData(responseData);
               return SearchResult(
                 responseData.data,
                 event.page,
-                maxPage,
+                responseData.maxPage,
+                event.query,
               );
             }
           },

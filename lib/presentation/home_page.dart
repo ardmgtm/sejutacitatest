@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../domain/entity/issue.dart';
+import '../domain/entity/repository.dart';
+import '../domain/entity/user.dart';
 import 'bloc/search/search_bloc.dart';
 import 'bloc/search_mode/search_mode_bloc.dart';
 import 'bloc/view_mode/view_mode_bloc.dart';
@@ -23,6 +26,7 @@ class HomePage extends StatelessWidget {
     var _viewModeBloc = context.read<ViewModeBloc>();
 
     String _query = '';
+    _searchInput.text = _query;
 
     void onScroll() {
       double maxScroll = _scrollController.position.maxScrollExtent;
@@ -32,6 +36,7 @@ class HomePage extends StatelessWidget {
 
       if (searchState is SearchResult &&
           _viewModeBloc.state is ViewModeLazyLoading) {
+        _query = searchState.query;
         bool isNotLast = searchState.maxPage != searchState.page;
         if (currentScroll == maxScroll && isNotLast) {
           _searchBloc.add(LoadData(_query, page: searchState.page + 1));
@@ -48,49 +53,57 @@ class HomePage extends StatelessWidget {
           SliverAppBar(
             backgroundColor: _primaryColor,
             title: SafeArea(
-              child: TextField(
-                focusNode: _focusSearch,
-                controller: _searchInput,
-                textInputAction: TextInputAction.search,
-                decoration: InputDecoration(
-                  hintText: "Search",
-                  contentPadding: const EdgeInsets.all(8),
-                  filled: true,
-                  fillColor: Colors.white,
-                  isDense: true,
-                  prefixIcon: const Padding(
-                    padding: EdgeInsets.all(4.0),
-                    child: Icon(Icons.search),
-                  ),
-                  suffixIcon: GestureDetector(
-                    onTap: () {
-                      _searchInput.clear();
-                      _searchBloc.add(Reset());
-                      _focusSearch.requestFocus();
-                    },
-                    child: const Padding(
-                      padding: EdgeInsets.only(right: 8),
-                      child: Icon(Icons.clear),
+              child: BlocSelector<SearchBloc, SearchState, String>(
+                selector: (state) {
+                  return state is SearchResult ? state.query : _query;
+                },
+                builder: (context, state) {
+                  _searchInput.text = state;
+                  return TextField(
+                    focusNode: _focusSearch,
+                    controller: _searchInput,
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      hintText: "Search",
+                      contentPadding: const EdgeInsets.all(8),
+                      filled: true,
+                      fillColor: Colors.white,
+                      isDense: true,
+                      prefixIcon: const Padding(
+                        padding: EdgeInsets.all(4.0),
+                        child: Icon(Icons.search),
+                      ),
+                      suffixIcon: GestureDetector(
+                        onTap: () {
+                          _searchInput.clear();
+                          _searchBloc.add(Reset());
+                          _focusSearch.requestFocus();
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.only(right: 8),
+                          child: Icon(Icons.clear),
+                        ),
+                      ),
+                      prefixIconConstraints: const BoxConstraints(
+                        maxHeight: 24,
+                        maxWidth: 24,
+                      ),
+                      suffixIconConstraints: const BoxConstraints(
+                        maxHeight: 24,
+                        maxWidth: 24,
+                      ),
                     ),
-                  ),
-                  prefixIconConstraints: const BoxConstraints(
-                    maxHeight: 24,
-                    maxWidth: 24,
-                  ),
-                  suffixIconConstraints: const BoxConstraints(
-                    maxHeight: 24,
-                    maxWidth: 24,
-                  ),
-                ),
-                onSubmitted: (value) {
-                  if (value.isNotEmpty) {
-                    debugPrint("Searching $value ....");
-                    _query = value;
-                    _searchBloc.add(Reset());
-                    _searchBloc.add(LoadData(value, page: 1));
-                  } else {
-                    _searchBloc.add(Reset());
-                  }
+                    onSubmitted: (value) {
+                      if (value.isNotEmpty) {
+                        debugPrint("Searching $value ....");
+                        _query = value;
+                        _searchBloc.add(Reset());
+                        _searchBloc.add(LoadData(value, page: 1));
+                      } else {
+                        _searchBloc.add(Reset());
+                      }
+                    },
+                  );
                 },
               ),
             ),
@@ -153,7 +166,7 @@ class HomePage extends StatelessWidget {
                       (BuildContext context, int index) {
                         return const LoadingItemCard();
                       },
-                      childCount: 5,
+                      childCount: 10,
                     ),
                   );
                 } else if (state is SearchResult) {
@@ -175,12 +188,12 @@ class HomePage extends StatelessWidget {
                             child: CircularProgressIndicator(),
                           );
                         }
-                        switch (_searchModeBloc.state.index) {
-                          case 0:
+                        switch (_s.data.runtimeType) {
+                          case List<User>:
                             return UserItemCard(user: _s.data[index]);
-                          case 1:
+                          case List<Issue>:
                             return IssueItemCard(issue: _s.data[index]);
-                          case 2:
+                          case List<Repository>:
                             return RepositoryItemCard(
                                 repository: _s.data[index]);
                           default:
@@ -215,10 +228,18 @@ class HomePage extends StatelessWidget {
               page: state.page,
               maxPage: state.maxPage,
               previous: (page) {
-                _searchBloc.add(LoadData(_query, page: page));
+                String savedQuery = (_searchBloc.state as SearchResult).query;
+                _searchBloc.add(LoadData(
+                  _query.isNotEmpty ? _query : savedQuery,
+                  page: page,
+                ));
               },
               next: (page) {
-                _searchBloc.add(LoadData(_query, page: page));
+                String savedQuery = (_searchBloc.state as SearchResult).query;
+                _searchBloc.add(LoadData(
+                  _query.isNotEmpty ? _query : savedQuery,
+                  page: page,
+                ));
               },
             );
           }
