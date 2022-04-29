@@ -15,20 +15,41 @@ class HomePage extends StatelessWidget {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
     final _primaryColor = Theme.of(context).colorScheme.primary;
     TextEditingController _searchInput = TextEditingController();
+    ScrollController _scrollController = ScrollController();
+    var _focusSearch = FocusNode();
 
-    var searchBloc = context.read<SearchBloc>();
-    var searchModeBloc = context.read<SearchModeBloc>();
-    var viewModeBloc = context.read<ViewModeBloc>();
+    var _searchBloc = context.read<SearchBloc>();
+    var _searchModeBloc = context.read<SearchModeBloc>();
+    var _viewModeBloc = context.read<ViewModeBloc>();
 
-    String query = '';
+    String _query = '';
+
+    void onScroll() {
+      double maxScroll = _scrollController.position.maxScrollExtent;
+      double currentScroll = _scrollController.position.pixels;
+
+      var searchState = _searchBloc.state;
+
+      if (searchState is SearchResult &&
+          _viewModeBloc.state is ViewModeLazyLoading) {
+        bool isNotLast = searchState.maxPage != searchState.page;
+        if (currentScroll == maxScroll && isNotLast) {
+          _searchBloc.add(LoadData(_query, page: searchState.page + 1));
+        }
+      }
+    }
+
+    _scrollController.addListener(onScroll);
 
     return Scaffold(
       body: CustomScrollView(
+        controller: _scrollController,
         slivers: [
           SliverAppBar(
             backgroundColor: _primaryColor,
             title: SafeArea(
               child: TextField(
+                focusNode: _focusSearch,
                 controller: _searchInput,
                 textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
@@ -44,7 +65,8 @@ class HomePage extends StatelessWidget {
                   suffixIcon: GestureDetector(
                     onTap: () {
                       _searchInput.clear();
-                      searchBloc.add(Reset());
+                      _searchBloc.add(Reset());
+                      _focusSearch.requestFocus();
                     },
                     child: const Padding(
                       padding: EdgeInsets.only(right: 8),
@@ -63,10 +85,10 @@ class HomePage extends StatelessWidget {
                 onSubmitted: (value) {
                   if (value.isNotEmpty) {
                     debugPrint("Searching $value ....");
-                    query = value;
-                    searchBloc.add(LoadData(value, page: 1));
+                    _query = value;
+                    _searchBloc.add(LoadData(value, page: 1));
                   } else {
-                    searchBloc.add(Reset());
+                    _searchBloc.add(Reset());
                   }
                 },
               ),
@@ -87,12 +109,12 @@ class HomePage extends StatelessWidget {
                         return SearchModeRadioGroup(
                           selectedIndex: state.index,
                           onValueChange: (selectedIndex) {
-                            searchModeBloc
+                            _searchModeBloc
                                 .add(SwitchSearchMode(selectedIndex!));
-                            searchBloc.add(Reset());
-                            searchBloc.add(SetSearchMode(selectedIndex));
+                            _searchBloc.add(Reset());
+                            _searchBloc.add(SetSearchMode(selectedIndex));
                             if (_searchInput.text.isNotEmpty) {
-                              searchBloc.add(LoadData(_searchInput.text));
+                              _searchBloc.add(LoadData(_searchInput.text));
                             }
                           },
                         );
@@ -103,11 +125,11 @@ class HomePage extends StatelessWidget {
                         return ViewModeChoiceGroup(
                           selectedIndex: state.index,
                           onValueChange: (selectedIndex) {
-                            viewModeBloc.add(SwitchViewMode(selectedIndex));
-                            searchBloc.add(Reset());
-                            searchBloc.add(SetViewMode(selectedIndex));
+                            _viewModeBloc.add(SwitchViewMode(selectedIndex));
+                            _searchBloc.add(Reset());
+                            _searchBloc.add(SetViewMode(selectedIndex));
                             if (_searchInput.text.isNotEmpty) {
-                              searchBloc.add(LoadData(_searchInput.text));
+                              _searchBloc.add(LoadData(_searchInput.text));
                             }
                           },
                         );
@@ -121,69 +143,81 @@ class HomePage extends StatelessWidget {
             pinned: true,
           ),
           SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: BlocBuilder<SearchBloc, SearchState>(
-                builder: (context, state) {
-                  if (state is SearchLoading) {
-                    return SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (BuildContext context, int index) {
-                          return const LoadingItemCard();
-                        },
-                        childCount: 5,
-                      ),
-                    );
-                  } else if (state is SearchResult) {
-                    SearchResult _s = state;
-                    if (_s.data.isEmpty) {
-                      return const SliverToBoxAdapter(
-                        child: NoDataWidget(),
-                      );
-                    }
-                    return SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (BuildContext context, int index) {
-                          switch (searchModeBloc.state.index) {
-                            case 0:
-                              return UserItemCard(user: _s.data[index]);
-                            case 1:
-                              return IssueItemCard(issue: _s.data[index]);
-                            case 2:
-                              return RepositoryItemCard(
-                                  repository: _s.data[index]);
-                            default:
-                              return const LoadingItemCard();
-                          }
-                        },
-                        childCount: _s.data.length,
-                      ),
-                    );
-                  } else if (state is Error) {
-                    return SliverToBoxAdapter(
-                      child: FailureWidget(message: state.failure.message),
-                    );
-                  } else {
+            padding: const EdgeInsets.all(16),
+            sliver: BlocBuilder<SearchBloc, SearchState>(
+              builder: (context, state) {
+                if (state is SearchLoading) {
+                  return SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (BuildContext context, int index) {
+                        return const LoadingItemCard();
+                      },
+                      childCount: 5,
+                    ),
+                  );
+                } else if (state is SearchResult) {
+                  SearchResult _s = state;
+                  if (_s.data.isEmpty) {
                     return const SliverToBoxAdapter(
-                      child: InitialView(),
+                      child: NoDataWidget(),
                     );
                   }
-                },
-              )),
+
+                  bool isLazyLoad = _viewModeBloc.state is ViewModeLazyLoading;
+                  bool isNotLast = state.page != state.maxPage;
+
+                  return SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (BuildContext context, int index) {
+                        if (index >= _s.data.length) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+                        switch (_searchModeBloc.state.index) {
+                          case 0:
+                            return UserItemCard(user: _s.data[index]);
+                          case 1:
+                            return IssueItemCard(issue: _s.data[index]);
+                          case 2:
+                            return RepositoryItemCard(
+                                repository: _s.data[index]);
+                          default:
+                            return const LoadingItemCard();
+                        }
+                      },
+                      childCount: isLazyLoad && isNotLast
+                          ? _s.data.length + 1
+                          : _s.data.length,
+                    ),
+                  );
+                } else if (state is Error) {
+                  return SliverToBoxAdapter(
+                    child: FailureWidget(message: state.failure.message),
+                  );
+                } else {
+                  return const SliverToBoxAdapter(
+                    child: InitialView(),
+                  );
+                }
+              },
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: BlocBuilder<SearchBloc, SearchState>(
         builder: (context, state) {
           if (state is SearchResult &&
-              viewModeBloc.state is ViewModeWithIndex) {
+              state.data.isNotEmpty &&
+              _viewModeBloc.state is ViewModeWithIndex) {
             return PageWidget(
               page: state.page,
               maxPage: state.maxPage,
               previous: (page) {
-                debugPrint(page.toString());
-                searchBloc.add(LoadData(query, page: page));
+                _searchBloc.add(LoadData(_query, page: page));
               },
               next: (page) {
-                searchBloc.add(LoadData(query, page: page));
+                _searchBloc.add(LoadData(_query, page: page));
               },
             );
           }

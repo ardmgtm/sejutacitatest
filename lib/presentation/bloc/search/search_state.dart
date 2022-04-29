@@ -5,7 +5,7 @@ abstract class SearchState extends Equatable {
   const SearchState(this.data);
 
   @override
-  List<Object> get props => [];
+  List<Object> get props => [data];
 }
 
 class SearchInitial extends SearchState {

@@ -31,11 +31,12 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       bool hasLoadedBefore = state is SearchResult;
       late SearchResult lastSearchResult;
 
-      if (hasLoadedBefore) {
+      if (hasLoadedBefore && viewMode == 0) {
         lastSearchResult = state as SearchResult;
+      } else {
+        emit(SearchLoading());
       }
 
-      emit(SearchLoading());
       var res = await _getData(
         searchMode,
         event.query,
@@ -43,9 +44,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       );
       emit(res.fold(
         (responseData) {
-          int maxPage = responseData.data.isNotEmpty
-              ? responseData.totalCount ~/ responseData.data.length + 1
-              : 0;
+          int maxPage = responseData.totalCount ~/ 30 + 1;
           if (viewMode == 0 && hasLoadedBefore) {
             return SearchResult(
               lastSearchResult.data + responseData.data,
